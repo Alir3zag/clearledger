@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, categories
+from app.routers import auth, categories, transactions
 
 app = FastAPI(title="ClearLedger API", version="1.0.0")
 
@@ -14,6 +14,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(categories.router)
+app.include_router(transactions.router)
 
 @app.get("/health")
 def health():
