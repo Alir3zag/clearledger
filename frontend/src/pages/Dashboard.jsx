@@ -14,8 +14,8 @@ export default function Dashboard() {
       .finally(() => setLoading(false))
   }, [])
 
-  const totalBudget = overview.reduce((s, r) => s + Number(r.budget_amount || 0), 0)
-  const totalSpent = overview.reduce((s, r) => s + Number(r.spent || 0), 0)
+  const totalBudget = overview.reduce((s, r) => s + Number(r.budget_limit || 0), 0)
+  const totalSpent = overview.reduce((s, r) => s + Number(r.total_spent || 0), 0)
 
   return (
     <div>
@@ -46,15 +46,15 @@ export default function Dashboard() {
         <h3 className="section-title">Budget Progress</h3>
         <div className="budget-grid">
           {overview.map((row, i) => {
-            const spent = Number(row.spent || 0)
-            const budget = Number(row.budget_amount || 0)
-            const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
+            const spent = Number(row.total_spent || 0)
+            const budget = Number(row.budget_limit || 0)
+            const pct = Math.min(Number(row.pct_used || 0), 100)
             const over = spent > budget && budget > 0
 
             return (
               <div key={i} className="budget-card">
                 <div className="budget-card-header">
-                  <span className="budget-category">{row.category_name}</span>
+                  <span className="budget-category">{row.category}</span>
                   <span className={`budget-status ${over ? 'over' : ''}`}>
                     {over ? 'Over budget' : `€${(budget - spent).toFixed(2)} left`}
                   </span>

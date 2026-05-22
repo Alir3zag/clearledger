@@ -27,8 +27,11 @@ body {
 .auth-title {
   font-size: 28px;
   font-weight: 700;
-  color: #63b3ed;
   margin-bottom: 4px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .auth-subtitle {
@@ -65,12 +68,12 @@ body {
 }
 
 .auth-form input:focus {
-  border-color: #63b3ed;
+  border-color: #6366f1;
 }
 
 .auth-form button {
-  background: #63b3ed;
-  color: #0f1117;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
   border: none;
   border-radius: 6px;
   padding: 11px;
@@ -82,7 +85,7 @@ body {
 }
 
 .auth-form button:hover:not(:disabled) {
-  background: #90cdf4;
+  background: linear-gradient(135deg, #818cf8, #6366f1);
 }
 
 .auth-form button:disabled {
@@ -98,7 +101,7 @@ body {
 }
 
 .auth-link a {
-  color: #63b3ed;
+  color: #6366f1;
   text-decoration: none;
 }
 
@@ -118,8 +121,11 @@ body {
 .navbar-brand {
   font-weight: 700;
   font-size: 18px;
-  color: #63b3ed;
   margin-right: 16px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .navbar-links {
@@ -264,7 +270,7 @@ body {
 
 .progress-fill {
   height: 100%;
-  background: #63b3ed;
+  background: #6366f1;
   border-radius: 3px;
   transition: width 0.3s;
 }
@@ -279,8 +285,8 @@ body {
 }
 
 .btn-primary {
-  background: #63b3ed;
-  color: #0f1117;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
   border: none;
   border-radius: 6px;
   padding: 8px 16px;
@@ -290,7 +296,7 @@ body {
   transition: background 0.15s;
 }
 
-.btn-primary:hover { background: #90cdf4; }
+.btn-primary:hover { background: linear-gradient(135deg, #818cf8, #6366f1); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-delete {
@@ -328,7 +334,7 @@ body {
   outline: none;
 }
 
-.inline-form input:focus, .inline-form select:focus { border-color: #63b3ed; }
+.inline-form input:focus, .inline-form select:focus { border-color: #6366f1; }
 
 .filter-bar {
   margin-bottom: 16px;
@@ -394,3 +400,115 @@ body {
 .loading { color: #718096; font-size: 14px; }
 .error-text { color: #fc8181; font-size: 13px; }
 .empty-state { color: #718096; font-size: 14px; text-align: center; padding: 24px; }
+
+/* Budgets page */
+.budget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.budget-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1e2433;
+  border: 1px solid #2d3748;
+  border-radius: 10px;
+  padding: 16px 20px;
+  transition: border-color 0.15s;
+}
+
+.budget-list-item:hover { border-color: #4a5568; }
+
+.budget-list-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.budget-list-category {
+  font-weight: 600;
+  font-size: 14px;
+  color: #e2e8f0;
+}
+
+.budget-list-period {
+  font-size: 12px;
+  color: #718096;
+}
+
+.budget-list-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.budget-list-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #6366f1;
+}
+
+.btn-edit {
+  background: none;
+  border: 1px solid #4a5568;
+  color: #a0aec0;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-edit:hover { border-color: #6366f1; color: #6366f1; }
+
+.edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-inline input {
+  background: #2d3748;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #e2e8f0;
+  font-size: 13px;
+  width: 120px;
+  outline: none;
+}
+
+.edit-inline input:focus { border-color: #6366f1; }
+
+/* Charts page */
+.chart-section { margin-bottom: 40px; }
+
+.chart-card {
+  background: #1e2433;
+  border: 1px solid #2d3748;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.chart-card-pie { display: flex; justify-content: center; }
+
+.chart-tooltip {
+  background: #2d3748;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.tooltip-label {
+  font-size: 12px;
+  color: #718096;
+  margin-bottom: 2px;
+}
+
+.tooltip-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
