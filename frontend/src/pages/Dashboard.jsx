@@ -44,6 +44,7 @@ export default function Dashboard() {
       })
   }, [])
 
+  useEffect(() => { document.title = 'Dashboard - ClearLedger' }, [])
   useEffect(() => { fetchAll() }, [fetchAll])
 
   const totalBudget = overview.reduce((s, r) => s + Number(r.budget_limit || 0), 0)

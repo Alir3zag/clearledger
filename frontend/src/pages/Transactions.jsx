@@ -45,6 +45,8 @@ export default function Transactions() {
       .finally(() => setLoading(false))
   }
 
+  useEffect(() => { document.title = 'Transactions - ClearLedger' }, [])
+
   useEffect(() => {
     api.get('/categories').then(res => setCategories(res.data))
   }, [])

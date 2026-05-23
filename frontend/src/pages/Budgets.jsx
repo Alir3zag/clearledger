@@ -26,6 +26,8 @@ export default function Budgets() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => { document.title = 'Budgets - ClearLedger' }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmitting(true)

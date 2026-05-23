@@ -7,11 +7,6 @@ import {
   BarChart, Bar
 } from 'recharts'
 
-const COLORS = [
-  '#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ef4444',
-  '#ec4899', '#8b5cf6', '#14b8a6', '#f97316', '#84cc16'
-]
-
 const RADIAN = Math.PI / 180
 const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, pct }) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5
@@ -49,11 +44,13 @@ export default function Charts() {
           name: row.category,
           value: Number(row.spent || 0),
           pct: Number(row.pct_of_total || 0),
+          color: row.color || '#6b7280',
         })))
         setRank(r.data.map(row => ({
           category: row.category,
           spent: Number(row.total_spent || 0),
           rank: row.spend_rank,
+          color: row.color || '#6b7280',
         })))
 
         const momByCategory = {}
@@ -73,6 +70,8 @@ export default function Charts() {
       })
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { document.title = 'Charts - ClearLedger' }, [])
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload?.length) {
@@ -188,8 +187,8 @@ export default function Charts() {
                     labelLine={false}
                     label={renderCustomLabel}
                   >
-                    {breakdown.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="none" />
+                    {breakdown.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} stroke="none" />
                     ))}
                   </Pie>
                   <Tooltip content={<PieTooltip />} isAnimationActive={false} />
@@ -213,8 +212,8 @@ export default function Charts() {
                   <YAxis type="category" dataKey="category" stroke="#718096" tick={{ fontSize: 12 }} width={75} />
                   <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
                   <Bar dataKey="spent" name="Spent" radius={[0, 4, 4, 0]}>
-                    {rank.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    {rank.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
