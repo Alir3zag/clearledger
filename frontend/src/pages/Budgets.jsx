@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import api from '../api/client'
+import { formatEuro } from '../utils/format'
+import { useToast } from '../context/ToastContext'
 
 const EMPTY_FORM = { category_id: '', amount: '', period_start: new Date().toISOString().slice(0, 7) + '-01' }
 
 export default function Budgets() {
+  const { addToast } = useToast()
   const [budgets, setBudgets] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
   const [editId, setEditId] = useState(null)
   const [editAmount, setEditAmount] = useState('')
 
@@ -27,7 +29,6 @@ export default function Budgets() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmitting(true)
-    setError('')
     try {
       const res = await api.post('/budgets', {
         category_id: form.category_id,
@@ -37,11 +38,12 @@ export default function Budgets() {
       setBudgets(prev => [res.data, ...prev])
       setShowForm(false)
       setForm(EMPTY_FORM)
+      addToast('Budget created successfully', 'success')
     } catch (err) {
       if (err.response?.status === 409) {
-        setError('A budget already exists for this category and month.')
+        addToast('Budget already exists for this month', 'error')
       } else {
-        setError(err.response?.data?.detail || 'Failed to create budget')
+        addToast('Failed to create budget', 'error')
       }
     } finally {
       setSubmitting(false)
@@ -53,8 +55,9 @@ export default function Budgets() {
       const res = await api.patch(`/budgets/${id}`, { amount: parseFloat(editAmount) })
       setBudgets(prev => prev.map(b => b.id === id ? res.data : b))
       setEditId(null)
+      addToast('Budget updated', 'success')
     } catch {
-      alert('Failed to update budget')
+      addToast('Failed to update budget', 'error')
     }
   }
 
@@ -101,45 +104,66 @@ export default function Budgets() {
             <button type="submit" className="btn-primary" disabled={submitting}>
               {submitting ? 'Saving...' : 'Save Budget'}
             </button>
-            {error && <span className="error-text">{error}</span>}
           </form>
         )}
 
-        {loading && <p className="loading">Loading...</p>}
+        {loading && (
+          <div className="skeleton-list">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="skeleton-item" />
+            ))}
+          </div>
+        )}
 
-        <div className="budget-list">
-          {budgets.map(b => (
-            <div key={b.id} className="budget-list-item">
-              <div className="budget-list-left">
-                <span className="budget-list-category">{getCategoryName(b.category_id)}</span>
-                <span className="budget-list-period">{b.period_start?.slice(0, 7)}</span>
+        {!loading && (
+          <div className="budget-list">
+            {budgets.length === 0 ? (
+              <div className="empty-state-box">
+                <div className="empty-state-icon">💰</div>
+                <p className="empty-state-title">No budgets yet</p>
+                <p className="empty-state-sub">Set monthly limits for your spending categories</p>
+                <button className="btn-primary" style={{ marginTop: 8 }} onClick={() => setShowForm(true)}>
+                  + Create your first budget
+                </button>
               </div>
-              <div className="budget-list-right">
-                {editId === b.id ? (
-                  <div className="edit-inline">
-                    <input
-                      type="number"
-                      value={editAmount}
-                      onChange={e => setEditAmount(e.target.value)}
-                      step="0.01"
-                      min="0.01"
-                    />
-                    <button className="btn-primary" onClick={() => handleEdit(b.id)}>Save</button>
-                    <button className="btn-delete" onClick={() => setEditId(null)}>Cancel</button>
+            ) : (
+              budgets.map(b => (
+                <div key={b.id} className="budget-list-item">
+                  <div className="budget-list-left">
+                    <span className="budget-list-category">
+                      <span
+                        className="category-dot"
+                        style={{ background: categories.find(c => c.id === b.category_id)?.color || '#6b7280' }}
+                      />
+                      {getCategoryName(b.category_id)}
+                    </span>
+                    <span className="budget-list-period">{b.period_start?.slice(0, 7)}</span>
                   </div>
-                ) : (
-                  <>
-                    <span className="budget-list-amount">€{Number(b.amount).toFixed(2)}</span>
-                    <button className="btn-edit" onClick={() => { setEditId(b.id); setEditAmount(b.amount) }}>Edit</button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-          {!loading && budgets.length === 0 && (
-            <p className="empty-state">No budgets yet. Create one above.</p>
-          )}
-        </div>
+                  <div className="budget-list-right">
+                    {editId === b.id ? (
+                      <div className="edit-inline">
+                        <input
+                          type="number"
+                          value={editAmount}
+                          onChange={e => setEditAmount(e.target.value)}
+                          step="0.01"
+                          min="0.01"
+                        />
+                        <button className="btn-primary" onClick={() => handleEdit(b.id)}>Save</button>
+                        <button className="btn-delete" onClick={() => setEditId(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="budget-list-amount">€{formatEuro(b.amount)}</span>
+                        <button className="btn-edit" onClick={() => { setEditId(b.id); setEditAmount(b.amount) }}>Edit</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

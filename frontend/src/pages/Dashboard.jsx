@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Navbar from '../components/Navbar'
 import api from '../api/client'
+import { formatEuro, formatRelativeDate } from '../utils/format'
 
 export default function Dashboard() {
   const [overview, setOverview] = useState([])
@@ -9,9 +10,12 @@ export default function Dashboard() {
   const [categories, setCategories] = useState([])
   const [monthSummary, setMonthSummary] = useState({ income: 0, expenses: 0 })
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
+  const fetchAll = useCallback((isRefresh = false) => {
+    if (isRefresh) setRefreshing(true)
+    else setLoading(true)
     Promise.all([
       api.get('/analytics/overview'),
       api.get('/analytics/breach'),
@@ -34,8 +38,13 @@ export default function Dashboard() {
         }
       })
       .catch(() => setError('Failed to load dashboard'))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        setLoading(false)
+        setRefreshing(false)
+      })
   }, [])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
 
   const totalBudget = overview.reduce((s, r) => s + Number(r.budget_limit || 0), 0)
   const totalSpent = overview.reduce((s, r) => s + Number(r.total_spent || 0), 0)
@@ -44,7 +53,16 @@ export default function Dashboard() {
     <div>
       <Navbar />
       <div className="page-container">
-        <h2 className="page-title">Dashboard</h2>
+        <div className="page-header">
+          <h2 className="page-title">Dashboard</h2>
+          <button
+            className="btn-refresh"
+            onClick={() => fetchAll(true)}
+            disabled={refreshing}
+          >
+            {refreshing ? 'Refreshing...' : '↻ Refresh'}
+          </button>
+        </div>
 
         {error && <p className="error-text">{error}</p>}
         {loading && <p className="loading">Loading...</p>}
@@ -52,39 +70,37 @@ export default function Dashboard() {
         {breach.length > 0 && (
           <div className="breach-banner">
             <span className="breach-icon">⚠️</span>
-            <span>
-              Over budget in: <strong>{breach.map(b => b.category).join(', ')}</strong>
-            </span>
+            <span>Over budget in: <strong>{breach.map(b => b.category).join(', ')}</strong></span>
           </div>
         )}
 
         <div className="summary-cards">
           <div className="summary-card">
             <div className="summary-label">Total Budget</div>
-            <div className="summary-value">€{totalBudget.toFixed(2)}</div>
+            <div className="summary-value">€{formatEuro(totalBudget)}</div>
           </div>
           <div className="summary-card">
             <div className="summary-label">Total Spent</div>
-            <div className="summary-value spent">€{totalSpent.toFixed(2)}</div>
+            <div className="summary-value spent">€{formatEuro(totalSpent)}</div>
           </div>
           <div className="summary-card">
             <div className="summary-label">Remaining</div>
             <div className={`summary-value ${totalBudget - totalSpent < 0 ? 'over' : 'safe'}`}>
-              €{(totalBudget - totalSpent).toFixed(2)}
+              €{formatEuro(totalBudget - totalSpent)}
             </div>
           </div>
           <div className="summary-card">
             <div className="summary-label">Income This Month</div>
-            <div className="summary-value safe">€{monthSummary.income.toFixed(2)}</div>
+            <div className="summary-value safe">€{formatEuro(monthSummary.income)}</div>
           </div>
           <div className="summary-card">
             <div className="summary-label">Expenses This Month</div>
-            <div className="summary-value spent">€{monthSummary.expenses.toFixed(2)}</div>
+            <div className="summary-value spent">€{formatEuro(monthSummary.expenses)}</div>
           </div>
           <div className="summary-card">
             <div className="summary-label">Net Savings</div>
             <div className={`summary-value ${monthSummary.income - monthSummary.expenses < 0 ? 'over' : 'safe'}`}>
-              €{(monthSummary.income - monthSummary.expenses).toFixed(2)}
+              €{formatEuro(monthSummary.income - monthSummary.expenses)}
             </div>
           </div>
         </div>
@@ -99,9 +115,15 @@ export default function Dashboard() {
             return (
               <div key={i} className="budget-card">
                 <div className="budget-card-header">
-                  <span className="budget-category">{row.category}</span>
+                  <span className="budget-category">
+                    <span
+                      className="category-dot"
+                      style={{ background: categories.find(c => c.name === row.category)?.color || '#6b7280' }}
+                    />
+                    {row.category}
+                  </span>
                   <span className={`budget-status ${over ? 'over' : ''}`}>
-                    {over ? '⚠ Over budget' : `€${(budget - spent).toFixed(2)} left`}
+                    {over ? '⚠ Over budget' : `€${formatEuro(budget - spent)} left`}
                   </span>
                 </div>
                 <div className="progress-bar">
@@ -111,14 +133,21 @@ export default function Dashboard() {
                   />
                 </div>
                 <div className="budget-amounts">
-                  <span>€{spent.toFixed(2)} spent</span>
-                  <span>€{budget.toFixed(2)} budget</span>
+                  <span>€{formatEuro(spent)} spent</span>
+                  <span>€{formatEuro(budget)} budget</span>
                 </div>
               </div>
             )
           })}
           {!loading && overview.length === 0 && (
-            <p className="empty-state">No budgets set yet. Go to Budgets to create one.</p>
+            <div className="empty-state-box">
+              <div className="empty-state-icon">📊</div>
+              <p className="empty-state-title">No budgets set yet</p>
+              <p className="empty-state-sub">Create a budget to start tracking your spending</p>
+              <a href="/budgets" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block', marginTop: 8 }}>
+                + Create Budget
+              </a>
+            </div>
           )}
         </div>
 
@@ -137,17 +166,37 @@ export default function Dashboard() {
             <tbody>
               {recent.slice(0, 5).map(t => (
                 <tr key={t.id}>
-                  <td>{t.date?.slice(0, 10)}</td>
+                  <td>{formatRelativeDate(t.date)}</td>
                   <td>{t.description || '—'}</td>
-                  <td>{categories.find(c => c.id === t.category_id)?.name || '—'}</td>
+                  <td>
+                    <span className="category-cell">
+                      {categories.find(c => c.id === t.category_id) ? (
+                        <>
+                          <span
+                            className="category-dot"
+                            style={{ background: categories.find(c => c.id === t.category_id)?.color || '#6b7280' }}
+                          />
+                          {categories.find(c => c.id === t.category_id)?.name}
+                        </>
+                      ) : '—'}
+                    </span>
+                  </td>
                   <td><span className={`badge ${t.type}`}>{t.type}</span></td>
                   <td className={t.type === 'income' ? 'amount-income' : 'amount-expense'}>
-                    {t.type === 'income' ? '+' : '-'}€{Number(t.amount).toFixed(2)}
+                    {t.type === 'income' ? '+' : '-'}€{formatEuro(t.amount)}
                   </td>
                 </tr>
               ))}
               {!loading && recent.length === 0 && (
-                <tr><td colSpan="5" className="empty-state">No transactions yet.</td></tr>
+                <tr>
+                  <td colSpan="5">
+                    <div className="empty-state-box">
+                      <div className="empty-state-icon">💸</div>
+                      <p className="empty-state-title">No transactions yet</p>
+                      <p className="empty-state-sub">Add your first transaction to get started</p>
+                    </div>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
