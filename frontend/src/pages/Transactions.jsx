@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
 import api from '../api/client'
 
-const EMPTY_FORM = { amount: '', type: 'expense', category_id: '', description: '', date: new Date().toISOString().slice(0, 10) }
+const EMPTY_FORM = {
+  amount: '',
+  type: 'expense',
+  category_id: '',
+  description: '',
+  date: new Date().toISOString().slice(0, 10)
+}
 
 export default function Transactions() {
   const [transactions, setTransactions] = useState([])
@@ -13,10 +19,17 @@ export default function Transactions() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [filterType, setFilterType] = useState('')
+  const [filterCategory, setFilterCategory] = useState('')
+  const [filterFrom, setFilterFrom] = useState('')
+  const [filterTo, setFilterTo] = useState('')
 
   const fetchTransactions = () => {
+    setLoading(true)
     const params = {}
     if (filterType) params.type = filterType
+    if (filterCategory) params.category_id = filterCategory
+    if (filterFrom) params.from_date = filterFrom
+    if (filterTo) params.to_date = filterTo
     api.get('/transactions', { params })
       .then(res => setTransactions(res.data.items || res.data))
       .catch(() => setError('Failed to load transactions'))
@@ -25,8 +38,11 @@ export default function Transactions() {
 
   useEffect(() => {
     api.get('/categories').then(res => setCategories(res.data))
+  }, [])
+
+  useEffect(() => {
     fetchTransactions()
-  }, [filterType])
+  }, [filterType, filterCategory, filterFrom, filterTo])
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this transaction?')) return
@@ -56,6 +72,9 @@ export default function Transactions() {
     }
   }
 
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0)
+  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0)
+
   return (
     <div>
       <Navbar />
@@ -74,9 +93,7 @@ export default function Transactions() {
               placeholder="Amount"
               value={form.amount}
               onChange={e => setForm({ ...form, amount: e.target.value })}
-              step="0.01"
-              min="0.01"
-              required
+              step="0.01" min="0.01" required
             />
             <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
               <option value="expense">Expense</option>
@@ -84,9 +101,9 @@ export default function Transactions() {
             </select>
             <select value={form.category_id} onChange={e => setForm({ ...form, category_id: e.target.value })}>
               <option value="">No category</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+              {categories
+                .filter(c => c.type === form.type)
+                .map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             <input
               type="text"
@@ -107,12 +124,58 @@ export default function Transactions() {
           </form>
         )}
 
-        <div className="filter-bar">
+        {/* Summary bar */}
+        <div className="tx-summary">
+          <div className="tx-summary-item">
+            <span className="summary-label">Showing</span>
+            <span className="summary-value" style={{ fontSize: 16 }}>{transactions.length} transactions</span>
+          </div>
+          <div className="tx-summary-item">
+            <span className="summary-label">Income</span>
+            <span className="summary-value safe" style={{ fontSize: 16 }}>+€{totalIncome.toFixed(2)}</span>
+          </div>
+          <div className="tx-summary-item">
+            <span className="summary-label">Expenses</span>
+            <span className="summary-value spent" style={{ fontSize: 16 }}>-€{totalExpense.toFixed(2)}</span>
+          </div>
+          <div className="tx-summary-item">
+            <span className="summary-label">Net</span>
+            <span className={`summary-value ${totalIncome - totalExpense < 0 ? 'over' : 'safe'}`} style={{ fontSize: 16 }}>
+              €{(totalIncome - totalExpense).toFixed(2)}
+            </span>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="filter-bar" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <select value={filterType} onChange={e => setFilterType(e.target.value)}>
             <option value="">All types</option>
             <option value="expense">Expense</option>
             <option value="income">Income</option>
           </select>
+          <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+            <option value="">All categories</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <input
+            type="date"
+            value={filterFrom}
+            onChange={e => setFilterFrom(e.target.value)}
+            style={{ background: '#2d3748', border: '1px solid #4a5568', borderRadius: 6, padding: '7px 12px', color: '#e2e8f0', fontSize: 13 }}
+            placeholder="From"
+          />
+          <input
+            type="date"
+            value={filterTo}
+            onChange={e => setFilterTo(e.target.value)}
+            style={{ background: '#2d3748', border: '1px solid #4a5568', borderRadius: 6, padding: '7px 12px', color: '#e2e8f0', fontSize: 13 }}
+            placeholder="To"
+          />
+          {(filterType || filterCategory || filterFrom || filterTo) && (
+            <button className="btn-delete" onClick={() => { setFilterType(''); setFilterCategory(''); setFilterFrom(''); setFilterTo('') }}>
+              Clear filters
+            </button>
+          )}
         </div>
 
         {loading && <p className="loading">Loading...</p>}
@@ -135,9 +198,7 @@ export default function Transactions() {
                   <td>{t.date?.slice(0, 10)}</td>
                   <td>{t.description || '—'}</td>
                   <td>{categories.find(c => c.id === t.category_id)?.name || '—'}</td>
-                  <td>
-                    <span className={`badge ${t.type}`}>{t.type}</span>
-                  </td>
+                  <td><span className={`badge ${t.type}`}>{t.type}</span></td>
                   <td className={t.type === 'income' ? 'amount-income' : 'amount-expense'}>
                     {t.type === 'income' ? '+' : '-'}€{Number(t.amount).toFixed(2)}
                   </td>
@@ -147,7 +208,7 @@ export default function Transactions() {
                 </tr>
               ))}
               {!loading && transactions.length === 0 && (
-                <tr><td colSpan="6" className="empty-state">No transactions yet.</td></tr>
+                <tr><td colSpan="6" className="empty-state">No transactions found.</td></tr>
               )}
             </tbody>
           </table>

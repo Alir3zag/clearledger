@@ -14,7 +14,7 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <span className="navbar-brand">ClearLedger</span>
+      <Link to="/dashboard" className="navbar-brand">ClearLedger</Link>
       <div className="navbar-links">
         {links.map(l => (
           <Link

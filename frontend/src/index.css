@@ -512,3 +512,46 @@ body {
   font-weight: 600;
   color: #e2e8f0;
 }
+
+/* Breach banner */
+.breach-banner {
+  background: #2d1515;
+  border: 1px solid #e53e3e;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fc8181;
+  font-size: 14px;
+}
+
+.breach-icon { font-size: 18px; }
+
+/* Summary cards 3-col on dashboard, 2-col on transactions */
+.summary-cards {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Transaction summary bar */
+.tx-summary {
+  display: flex;
+  gap: 24px;
+  background: #1e2433;
+  border: 1px solid #2d3748;
+  border-radius: 10px;
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.tx-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navbar-brand {
+  text-decoration: none;
+}
