@@ -4,8 +4,13 @@ A personal finance tracker built as a Database course final project. Track incom
 
 ## Live Demo
 
-> 🔗 App: _coming soon_
+> 🔗 App: https://clearledger-eta.vercel.app
 > 🎥 Demo video: _coming soon_
+
+Test accounts:
+- `user1@clearledger.dev` / `password123`
+- `user2@clearledger.dev` / `password123`
+- `user3@clearledger.dev` / `password123`
 
 ---
 
@@ -15,10 +20,13 @@ ClearLedger lets users:
 
 - Register and log in securely with JWT authentication
 - Add, edit, and delete income and expense transactions
-- Organize transactions by category
+- Organize transactions by category with color coding
 - Set monthly budgets per category
 - View budget progress in real time on the dashboard
-- Analyze spending trends and category breakdowns with charts
+- Get alerted when a budget is exceeded
+- Analyze spending trends and category breakdowns with 5 chart types
+- Filter and sort transactions by date, type, category, and amount
+- Track month-over-month spending changes per category
 
 ---
 
@@ -60,7 +68,7 @@ Full schema in DBML: [`docs/schema.dbml`](docs/schema.dbml)
 - Partial index on active transactions (`WHERE deleted_at IS NULL`)
 - Partial index on active recurring templates (`WHERE is_active = TRUE`)
 
-**Soft delete** — transactions are never permanently deleted; `deleted_at` is set instead, preserving history
+**Soft delete** — transactions are never permanently deleted; `deleted_at` is set instead, preserving historical budget accuracy
 
 **Analytical queries** using PostgreSQL-specific features:
 - `DATE_TRUNC` for monthly aggregation
@@ -121,9 +129,10 @@ clearledger/
 ├── frontend/
 │   └── src/
 │       ├── api/             # Axios client
-│       ├── context/         # Auth context
-│       ├── components/      # Navbar, ProtectedRoute
-│       └── pages/           # Dashboard, Transactions, Budgets, Charts
+│       ├── context/         # Auth + Toast context
+│       ├── components/      # Navbar, ProtectedRoute, Toast, ConfirmModal
+│       ├── pages/           # Dashboard, Transactions, Budgets, Charts
+│       └── utils/           # formatEuro, formatRelativeDate
 └── docs/
     ├── schema.png
     └── schema.dbml
@@ -206,5 +215,5 @@ python -m pytest tests/ -v
 
 ## Author
 
-Alireza — CS student, University of Bremen
+Alireza — SDT student, Constructor University
 GitHub: [@Alir3zag](https://github.com/Alir3zag)
