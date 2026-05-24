@@ -10,6 +10,7 @@ export default function Navbar() {
     { to: '/transactions', label: 'Transactions' },
     { to: '/budgets', label: 'Budgets' },
     { to: '/charts', label: 'Charts' },
+    { to: '/recurring', label: 'Recurring' },
   ]
 
   return (

@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
 import Budgets from './pages/Budgets'
 import Charts from './pages/Charts'
+import Recurring from './pages/Recurring'
 
 function App() {
   return (
@@ -28,6 +29,9 @@ function App() {
             } />
             <Route path="/charts" element={
               <ProtectedRoute><Charts /></ProtectedRoute>
+            } />
+            <Route path="/recurring" element={
+              <ProtectedRoute><Recurring /></ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
