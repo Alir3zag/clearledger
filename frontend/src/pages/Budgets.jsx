@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
+import ConfirmModal from '../components/ConfirmModal'
 import api from '../api/client'
 import { formatEuro } from '../utils/format'
 import { useToast } from '../context/ToastContext'
@@ -16,17 +17,14 @@ export default function Budgets() {
   const [submitting, setSubmitting] = useState(false)
   const [editId, setEditId] = useState(null)
   const [editAmount, setEditAmount] = useState('')
+  const [deleteId, setDeleteId] = useState(null)
 
   useEffect(() => {
+    document.title = 'Budgets — ClearLedger'
     Promise.all([api.get('/budgets'), api.get('/categories')])
-      .then(([b, c]) => {
-        setBudgets(b.data)
-        setCategories(c.data)
-      })
+      .then(([b, c]) => { setBudgets(b.data); setCategories(c.data) })
       .finally(() => setLoading(false))
   }, [])
-
-  useEffect(() => { document.title = 'Budgets - ClearLedger' }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -63,7 +61,19 @@ export default function Budgets() {
     }
   }
 
-  const getCategoryName = (id) => categories.find(c => c.id === id)?.name || '—'
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/budgets/${deleteId}`)
+      setBudgets(prev => prev.filter(b => b.id !== deleteId))
+      addToast('Budget deleted', 'success')
+    } catch {
+      addToast('Failed to delete budget', 'error')
+    } finally {
+      setDeleteId(null)
+    }
+  }
+
+  const getCat = (id) => categories.find(c => c.id === id)
 
   return (
     <div>
@@ -93,9 +103,7 @@ export default function Budgets() {
               placeholder="Amount (€)"
               value={form.amount}
               onChange={e => setForm({ ...form, amount: e.target.value })}
-              step="0.01"
-              min="0.01"
-              required
+              step="0.01" min="0.01" required
             />
             <input
               type="month"
@@ -111,14 +119,12 @@ export default function Budgets() {
 
         {loading && (
           <div className="skeleton-list">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="skeleton-item" />
-            ))}
+            {[1, 2, 3].map(i => <div key={i} className="skeleton-item" />)}
           </div>
         )}
 
         {!loading && (
-          <div className="budget-list">
+          <div className="budget-list-compact">
             {budgets.length === 0 ? (
               <div className="empty-state-box">
                 <div className="empty-state-icon">💰</div>
@@ -129,44 +135,68 @@ export default function Budgets() {
                 </button>
               </div>
             ) : (
-              budgets.map(b => (
-                <div key={b.id} className="budget-list-item">
-                  <div className="budget-list-left">
-                    <span className="budget-list-category">
-                      <span
-                        className="category-dot"
-                        style={{ background: categories.find(c => c.id === b.category_id)?.color || '#6b7280' }}
-                      />
-                      {getCategoryName(b.category_id)}
-                    </span>
-                    <span className="budget-list-period">{b.period_start?.slice(0, 7)}</span>
-                  </div>
-                  <div className="budget-list-right">
-                    {editId === b.id ? (
-                      <div className="edit-inline">
-                        <input
-                          type="number"
-                          value={editAmount}
-                          onChange={e => setEditAmount(e.target.value)}
-                          step="0.01"
-                          min="0.01"
-                        />
-                        <button className="btn-primary" onClick={() => handleEdit(b.id)}>Save</button>
-                        <button className="btn-delete" onClick={() => setEditId(null)}>Cancel</button>
+              budgets.map(b => {
+                const cat = getCat(b.category_id)
+                return (
+                  <div key={b.id} className="budget-compact-item">
+                    {/* Left: dot + name + period */}
+                    <div className="budget-compact-left">
+                      <span className="category-dot" style={{ background: cat?.color || '#6b7280' }} />
+                      <div>
+                        <span className="budget-compact-name">{cat?.name || '—'}</span>
+                        <span className="budget-compact-period">{b.period_start?.slice(0, 7)}</span>
                       </div>
-                    ) : (
-                      <>
-                        <span className="budget-list-amount">€{formatEuro(b.amount)}</span>
-                        <button className="btn-edit" onClick={() => { setEditId(b.id); setEditAmount(b.amount) }}>Edit</button>
-                      </>
-                    )}
+                    </div>
+
+                    {/* Right: amount + actions */}
+                    <div className="budget-compact-right">
+                      {editId === b.id ? (
+                        <div className="edit-inline">
+                          <input
+                            type="number"
+                            value={editAmount}
+                            onChange={e => setEditAmount(e.target.value)}
+                            step="0.01" min="0.01"
+                            style={{ width: 100 }}
+                          />
+                          <button className="btn-primary" onClick={() => handleEdit(b.id)}>Save</button>
+                          <button className="btn-delete" onClick={() => setEditId(null)}>Cancel</button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="budget-compact-amount">€{formatEuro(b.amount)}</span>
+                          <button
+                            className="btn-edit"
+                            onClick={() => { setEditId(b.id); setEditAmount(b.amount) }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn-delete"
+                            onClick={() => setDeleteId(b.id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={deleteId !== null}
+        title="Delete Budget"
+        message="This budget will be permanently removed. Transactions already recorded will not be affected."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+        confirmLabel="Delete"
+        danger={true}
+      />
     </div>
   )
 }
