@@ -1,11 +1,12 @@
 # ClearLedger
 
-A personal finance tracker built as a Database course final project. Track income and expenses, set monthly budgets, and visualize spending patterns — all backed by a PostgreSQL database with complex analytical queries.
+A personal finance tracker built as a Database Fundamentals final project (Constructor University, Spring 2026). Track income and expenses, set monthly budgets, and visualize spending patterns — all backed by a PostgreSQL database with complex analytical queries.
 
 ## Live Demo
 
-> 🔗 App: https://clearledger-eta.vercel.app
-> 🎥 Demo video: _coming soon_
+🔗 **App:** https://clearledger-eta.vercel.app
+
+![ClearLedger demo](docs/clearledger.gif)
 
 Test accounts:
 - `user1@clearledger.dev` / `password123`
@@ -135,7 +136,8 @@ clearledger/
 │       └── utils/           # formatEuro, formatRelativeDate
 └── docs/
     ├── schema.png
-    └── schema.dbml
+    ├── schema.dbml
+    └── clearledger.gif
 ```
 
 ---
