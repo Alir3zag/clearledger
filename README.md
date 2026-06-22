@@ -6,12 +6,20 @@ A personal finance tracker built as a Database Fundamentals final project (Const
 
 🔗 **App:** https://clearledger-eta.vercel.app
 
-![ClearLedger demo](docs/clearledger.gif)
+![ClearLedger dashboard](docs/dashboard.png)
 
 Test accounts:
 - `user1@clearledger.dev` / `password123`
 - `user2@clearledger.dev` / `password123`
 - `user3@clearledger.dev` / `password123`
+
+---
+
+## Screenshots
+
+| Transactions | Charts |
+|---|---|
+| ![Transactions](docs/screenshots/2.png) | ![Charts](docs/screenshots/3.png) |
 
 ---
 
@@ -135,9 +143,12 @@ clearledger/
 │       ├── pages/           # Dashboard, Transactions, Budgets, Charts
 │       └── utils/           # formatEuro, formatRelativeDate
 └── docs/
+    ├── dashboard.png
     ├── schema.png
     ├── schema.dbml
-    └── clearledger.gif
+    └── screenshots/
+        ├── 2.png
+        └── 3.png
 ```
 
 ---
